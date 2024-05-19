@@ -25,7 +25,7 @@ Then, you need to enter your database informations in the src.script.py file.
 To run the script, navigate to the src.script subfolder and run the following command:
 
 ```bash
-uvicorn script:app --reload
+uvicorn main:app --reload
 ```
 
 To start the front-end server, use the following command:

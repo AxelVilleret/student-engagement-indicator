@@ -1,3 +1,7 @@
+from typing import Union
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from sqlalchemy import create_engine
 import pandas as pd
 import numpy as np
@@ -7,27 +11,30 @@ import json
 # Replace 'username', 'password', and 'database_name' with your database credentials
 engine = create_engine('mysql+pymysql://root:@localhost:3306/datamadeth')
 
-def convertir_heure_en_secondes(heure):
+
+def convertHoursToSeconds(heure):
     h, m, s = map(int, heure.split(':'))
     return h * 3600 + m * 60 + s
 
-def sqlToDataModel() :
+
+def sqlToDataModel():
    # Define your SQL queries
     queryTransition = "SELECT Utilisateur, Titre, Date, Heure FROM transition"
     queryFile = "SELECT User,Filenameo, Dateupload, Timeupload FROM userfiles"
-     # Execute the SQL queries and load the results into Pandas DataFrames
+    # Execute the SQL queries and load the results into Pandas DataFrames
     transitionData = pd.read_sql(queryTransition, engine)
     fileData = pd.read_sql(queryFile, engine)
-    fileData["Filenameo"] = fileData["Filenameo"].apply(lambda filename : "fileUpload: " + filename)
-  
-    #rename the fileData by the transitionData columns
+    fileData["Filenameo"] = fileData["Filenameo"].apply(
+        lambda filename: "fileUpload: " + filename)
+
+    # rename the fileData by the transitionData columns
     fileData.columns = transitionData.columns
 
     # Concatenate the dataframes
     datas = pd.concat([transitionData, fileData])
     datas["Heure"] = datas["Heure"].apply(lambda x: str(x))
     datas.to_json('datas.json', orient='records')
-    
+
 
 # Engine: The database engine
 # First criterion: identify active students by calculating the average time spent per person each day in the application in seconds
@@ -36,24 +43,26 @@ def filterData(type, df):
     data_dict = {data: df[df[type] == data] for data in dataSet}
     return data_dict
 
+
 def timeStampMinutsPerUserPerDay(list_timestamps):
     for i in range(len(list_timestamps)):
-        list_timestamps[i] = convertir_heure_en_secondes(list_timestamps[i].split()[2])
+        list_timestamps[i] = convertHoursToSeconds(
+            list_timestamps[i].split()[2])
     list_timestamps.sort()
 
     counter = 0
     seuil = 20*60
     for i in range(len(list_timestamps)-1):
         activePeriod = list_timestamps[i+1] - list_timestamps[i]
-        if(activePeriod< seuil) :
-            counter+=activePeriod
+        if (activePeriod < seuil):
+            counter += activePeriod
     return counter
 
 
 def averageSpentTimePerDayPerUser():
     df = pd.read_json('datas.json')
     # Filter by users and put them into a dictionary with the user as the key and their dataframe as the value
-    filterDateTable = filterData("Utilisateur",df)
+    filterDateTable = filterData("Utilisateur", df)
    # Apply on each user's dataframe a filter to get the dataframe of each day of each user
     averageTimes = {}
     for key, value in filterDateTable.items():
@@ -61,10 +70,13 @@ def averageSpentTimePerDayPerUser():
         nbJour = 0
         days = filterData("Date", value)
         for key2, value2 in days.items():
-            activePeriods.append(timeStampMinutsPerUserPerDay(value2["Heure"].tolist()))
-            nbJour+=1
+            activePeriods.append(
+                timeStampMinutsPerUserPerDay(value2["Heure"].tolist()))
+            nbJour += 1
         averageTimes[key] = np.array(activePeriods).mean()/nbJour
     return averageTimes
+
+
 average_Spent_TimePerDayPerUser = averageSpentTimePerDayPerUser()
 
 
@@ -73,14 +85,16 @@ average_Spent_TimePerDayPerUser = averageSpentTimePerDayPerUser()
 def consecutiveDays(timestamp1, timestamp2):
     return (timestamp2 - timestamp1).days == 1
 
+
 def getMaxCounter(list):
-    return max(list)+1 if len(list) !=0  else 1
+    return max(list)+1 if len(list) != 0 else 1
+
 
 def maxDayofSigningPerPersonn():
 
     df = pd.read_json('datas.json')
-    d ={}
-    filterPerPerson = filterData("Utilisateur",df)
+    d = {}
+    filterPerPerson = filterData("Utilisateur", df)
     for key, value in filterPerPerson.items():
         listDatePerPerson = []
         counterPerPerson = 0
@@ -90,69 +104,74 @@ def maxDayofSigningPerPersonn():
 
         listDatePerPerson.sort()
         listOptimalCounteur = []
-        for i in range(len(listDatePerPerson)-1) :
-            if(consecutiveDays(listDatePerPerson[i], listDatePerPerson[i+1])):
-                counterPerPerson+=1
+        for i in range(len(listDatePerPerson)-1):
+            if (consecutiveDays(listDatePerPerson[i], listDatePerPerson[i+1])):
+                counterPerPerson += 1
                 listOptimalCounteur.append(counterPerPerson)
-            else :
-                counterPerPerson=0
+            else:
+                counterPerPerson = 0
         d[key] = getMaxCounter(listOptimalCounteur)
     return d
 
 
-
-#########Third criteria : student who responded the most about the messages #########
+######### Third criteria : student who responded the most about the messages #########
 def countRepliedMsgPerPersonn():
     df = pd.read_json('datas.json')
     keyMessage = "Répondre à un message"
     count = 0
     results = {}
-    filterPerPerson = filterData("Utilisateur",df)
+    filterPerPerson = filterData("Utilisateur", df)
     for user, dataFrame in filterPerPerson.items():
-        count =0
+        count = 0
         for titre in dataFrame["Titre"].tolist():
-            if(titre == keyMessage):
-                count+=1
+            if (titre == keyMessage):
+                count += 1
         results[user] = count
     return results
+
+
 replied_msg_results = countRepliedMsgPerPersonn()
 
 
 # Fourth criterion: the average number sent per person and per day #
-def countFilePerPersonn():
+def countFilePerPerson():
     df = pd.read_json('datas.json')
     count = 0
     results = {}
     keyword = "fileUpload"
-    filterPerPerson = filterData("Utilisateur",df) 
+    filterPerPerson = filterData("Utilisateur", df)
     for user, dataFrame in filterPerPerson.items():
-        count =0
+        count = 0
         for titre in dataFrame["Titre"].tolist():
-            if(keyword in titre) :
-                count+=1
+            if (keyword in titre):
+                count += 1
         results[user] = count
     return results
+
+
 # To count files per person
-files_results = countFilePerPersonn()
+files_results = countFilePerPerson()
 
 
-#########score calculations #####
+######### score calculations #####
 def scorePerPerson(typeDict, reversed):
-    list =[]
+    list = []
     dictResult = {}
     for user, value in typeDict.items():
         list.append(value)
-    list.sort(reverse = reversed)
-    
+    list.sort(reverse=reversed)
+
     for user, value in typeDict.items():
-        dictResult[user] = {"classement" : list.index(value) +1,  "score" : value}  
+        dictResult[user] = {"classement": list.index(
+            value) + 1,  "score": value}
     return dictResult
+
 
 def finalRanking():
     maxSignin = scorePerPerson(maxDayofSigningPerPersonn(), True)
     averageSpent = scorePerPerson(averageSpentTimePerDayPerUser(), True)
     countMessagesReplied = scorePerPerson(countRepliedMsgPerPersonn(), True)
-    countFile = scorePerPerson(countFilePerPersonn(), True)
+    countFile = scorePerPerson(countFilePerPerson(), True)
     scores = {}
     for user in maxSignin.keys():
         scores[user] = 0
@@ -160,6 +179,44 @@ def finalRanking():
         scores[user] += averageSpent[user]["classement"]
         scores[user] += countMessagesReplied[user]["classement"]
         scores[user] += countFile[user]["classement"]
-    print(scorePerPerson(scores, False))
     return scorePerPerson(scores, False)
+
+
 finalRanking()
+
+
+app = FastAPI()
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/spentTimePerDay")
+def read_spent_time():
+    return scorePerPerson(averageSpentTimePerDayPerUser(), True)
+
+@app.get("/filePerPerson")
+def file_sharing():
+    return scorePerPerson(countFilePerPerson(), True)
+
+@app.get("/maxSigninDays")
+def max_signin():
+    return scorePerPerson(maxDayofSigningPerPersonn(), True)
+
+@app.get("/repliedMessages")
+def replied_mesg():
+    return scorePerPerson(countRepliedMsgPerPersonn(), True)
+
+@app.get("/ranking")
+def file_sharing():
+    return finalRanking()

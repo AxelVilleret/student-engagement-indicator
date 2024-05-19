@@ -20,17 +20,13 @@ ChartJS.register(
 );
 
 
-export default function BarChartComponent({title, labels, datas}) {
+export default function BarChartComponent({labels, datas}) {
   
   const options = {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: title,
+        display: false, 
       },
     },
   };

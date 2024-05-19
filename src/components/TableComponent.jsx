@@ -5,12 +5,13 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-export default function BasicTable({data}) {
+
+export default function TableComponent({ data }) {
   return (
     <TableContainer>
-    <Table>
+      <Table>
         <TableHead>
-          <TableRow sx= {{backgroundColor: "#FFFAF8"}}>
+          <TableRow>
             <TableCell align="center">Name</TableCell>
             <TableCell align="center">Ranking</TableCell>
             <TableCell align="center">Score</TableCell>
@@ -18,10 +19,7 @@ export default function BasicTable({data}) {
         </TableHead>
         <TableBody>
           {data.map((row) => (
-            <TableRow
-              key={row.cle}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 }, backgroundColor: "#FFFAF8" }}
-            >
+            <TableRow key={row.cle}>
               <TableCell align="center">{row.cle}</TableCell>
               <TableCell align="center">{row.classement}</TableCell>
               <TableCell align="center">{row.score}</TableCell>
