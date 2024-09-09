@@ -12,8 +12,8 @@ export default function TableComponent({ data }) {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell align="center">Name</TableCell>
-            <TableCell align="center">Ranking</TableCell>
+            <TableCell align="center">Nom</TableCell>
+            <TableCell align="center">Rang</TableCell>
             <TableCell align="center">Score</TableCell>
           </TableRow>
         </TableHead>

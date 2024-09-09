@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
-const ApexChartComponent = ({ datas, labels }) => {
+const ApexChartComponent = ({ data, labels }) => {
 
   const options = { 
     labels: labels,
@@ -17,9 +17,7 @@ const ApexChartComponent = ({ datas, labels }) => {
   };
 
   return (
-    <div id="chart">
-      <ReactApexChart options={options} series={datas} type="polarArea" />
-    </div>
+    <ReactApexChart options={options} series={data} type="polarArea" />
   );
 };
 

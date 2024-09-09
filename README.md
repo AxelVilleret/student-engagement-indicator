@@ -12,23 +12,25 @@ For the front-end, use npm:
 npm install
 ```
 
-For the script, use pip:
+Then you need to configure the .env file in the root folder following the .env.example file.
+
+For the backend, use pip:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Then, you need to enter your database informations in the src.script.py file.
+Then, you need to enter your database informations in the .env file in the root folder following the .env.example file.
 
 ## Usage
 
-To run the script, navigate to the src.script subfolder and run the following command:
+To run the backend server, use the following command:
 
 ```bash
-uvicorn main:app --reload
+python main.py
 ```
 
-To start the front-end server, use the following command:
+To start the frontend server, use the following command:
 
 ```bash
 npm run start

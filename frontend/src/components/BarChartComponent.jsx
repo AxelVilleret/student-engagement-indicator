@@ -20,7 +20,7 @@ ChartJS.register(
 );
 
 
-export default function BarChartComponent({labels, datas}) {
+export default function BarChartComponent({labels, data}) {
   
   const options = {
     responsive: true,
@@ -31,16 +31,16 @@ export default function BarChartComponent({labels, datas}) {
     },
   };
   
-  const data = {
+  const formattedData = {
     labels,
     datasets: [
       {
         label: labels,
-        data: datas,
+        data: data,
         backgroundColor: 'rgb(255, 136, 153)',
         },
     ],
   };
 
-  return <Bar options={options} data={data} />;
+  return <Bar options={options} data={formattedData} />;
 }

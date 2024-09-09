@@ -1,0 +1,13 @@
+# Fichiers Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pyz
+*.pyw
+
+# Envirronnement virtuel
+venv/
+
+# Variables d'environnement
+.env
